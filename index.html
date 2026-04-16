@@ -879,7 +879,7 @@ window.addEventListener('scroll', function() {
 </style>
 
 <script>
-var SYSPROMPT = "Bạn là chuyên viên tư vấn landing page cho spa & clinic của Lê Thanh Vi (spalanding.com).\n\nMỤC TIÊU: Dẫn dắt khách nhận ra vấn đề → thu thập thông tin → chốt sang Zalo.\n\nNGUYÊN TẮC:\n- Trả lời NGẮN (1-3 câu), tự nhiên như người thật\n- Không giải thích kỹ thuật, không lan man\n- Tạo đồng thuận trước rồi mới chốt\n- KHÔNG spam CTA liên tục\n\nFLOW: 1.Hỏi pain → 2.Hỏi tình trạng web → 3.Hỏi cấp bách → 4.Tóm tắt + giải pháp → 5.Chốt Zalo\n\nKHI ĐÃ ĐỦ 3 THÔNG TIN (pain + status + intent) → đặt link Zalo dạng https://zalo.me/0921634984?text=... trên một dòng riêng cuối tin nhắn.\n\nXỬ LÝ PHẢN ĐỐI:\n- Suy nghĩ thêm: đề nghị xem demo trước\n- Giá cao: chi phí mất khách còn lớn hơn, gửi demo\n- Đang ổn: tăng thêm 20-30% conversion, xem demo so sánh\n\nURGENCY khi phù hợp: Chỉ nhận 3-5 spa/tháng, hiện còn 2 slot.\n\nGIỌNG ĐIỆU: Thân thiện, tự nhiên, không quá sales. Chỉ viết text thuần.";
+var SYSPROMPT = "Bạn là trợ lý tư vấn landing page spa của Lê Thanh Vi (spalanding.com).\n\nMỤC TIÊU DUY NHẤT: Chốt khách sang Zalo càng nhanh càng tốt.\n\nQUY TẮC:\n- Trả lời TỐI ĐA 2 câu, tự nhiên như người thật\n- Sau TỐI ĐA 2 lượt hỏi đáp → PHẢI đặt link Zalo\n- Link Zalo luôn trên dòng riêng cuối tin nhắn\n- Không giải thích dài dòng\n- Không hỏi thêm nếu đã có 1 thông tin về pain\n\nXỬ LÝ MỌI TÌNH HUỐNG:\n- Bất kỳ pain nào → đồng cảm 1 câu → offer demo → Zalo\n- Phản đối giá → demo miễn phí trước, không cam kết\n- Chưa cần → còn 2 slot tháng này\n\nKHI ĐẶT LINK ZALO dùng format: https://zalo.me/0921634984?text=... trên một dòng riêng\n\nGIỌNG: Thân thiện, ngắn gọn, không sales quá.";
 
 var IQR = [
   {l:"👥 Khách hỏi nhiều nhưng không chốt", v:"Khách hỏi nhiều nhưng không chốt"},
@@ -981,6 +981,18 @@ function callAI() {
     if (got.pain&&got.status&&got.intent) {
       var p = encodeURIComponent('Spa gap: '+got.pain+' | Web: '+got.status+' | Nhu cau: '+got.intent);
       ctx += '\n[DU 3 THONG TIN → dat link https://zalo.me/0921634984?text='+p+' cuoi tin nhan]';
+      // Gửi lead về Make.com → Google Sheet
+      fetch('https://hook.eu1.make.com/qoywnke985dxymrdqiqglg8zd54m7gqk', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          time: new Date().toLocaleString('vi-VN'),
+          pain: got.pain,
+          status: got.status,
+          intent: got.intent,
+          source: 'spalanding.com'
+        })
+      }).catch(function(){});
     }
   }
 
