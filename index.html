@@ -989,7 +989,7 @@ function callAI() {
   if (mc===1) nxt=[{l:"✅ Chưa có website/landing page",v:"Chưa có website/landing page"},{l:"⚠️ Có rồi nhưng chưa hiệu quả",v:"Có rồi nhưng chưa hiệu quả"}];
   else if (mc===3) nxt=[{l:"🔥 Muốn làm sớm",v:"Muốn làm sớm"},{l:"🔍 Đang tham khảo thêm",v:"Đang tham khảo thêm"}];
 
-  fetch('https://api.anthropic.com/v1/messages',{
+  fetch('/api/chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
