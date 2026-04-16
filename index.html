@@ -776,7 +776,7 @@ footer p{font-size:11px;color:rgba(250,247,244,0.3);letter-spacing:1px;}
       </div>
       <div class="contact-buttons">
         <p class="contact-btn-label">Nhắn trực tiếp</p>
-        <a href="https://zalo.me/0708575989" class="btn-zalo">💬 Gửi fanpage qua Zalo</a>
+        <a href="https://zalo.me/0921634984" class="btn-zalo">💬 Gửi fanpage qua Zalo</a>
         <div class="guarantee-row">🔒 Miễn phí — không ràng buộc</div>
       </div>
     </div>
@@ -793,8 +793,8 @@ footer p{font-size:11px;color:rgba(250,247,244,0.3);letter-spacing:1px;}
     <a href="#demo" class="btn-secondary">Xem demo trước</a>
   </div>
   <div class="contact-bar">
-    <a href="tel:0708575989" class="contact-item">📞 <span>0708.575.989</span></a>
-    <a href="https://zalo.me/0708575989" class="contact-item">💬 <span>Zalo: 0708.575.989</span></a>
+    <a href="tel:0921634984" class="contact-item">📞 <span>0921.634.984</span></a>
+    <a href="https://zalo.me/0921634984" class="contact-item">💬 <span>Zalo: 0921.634.984</span></a>
     <a href="mailto:hello@spapage.studio" class="contact-item">✉️ <span>hello@spapage.studio</span></a>
   </div>
 </section>
@@ -807,9 +807,255 @@ footer p{font-size:11px;color:rgba(250,247,244,0.3);letter-spacing:1px;}
 
 <!-- FLOATING -->
 <div class="floating-cta">
-  <a href="tel:0708575989" class="float-btn float-phone" title="Gọi ngay">📞</a>
-  <a href="https://zalo.me/0708575989" class="float-btn float-zalo" title="Zalo">💬</a>
+  <button class="float-btn float-chat" id="chatToggle" title="Tư vấn AI" onclick="toggleChat()">💬</button>
 </div>
+
+<!-- AI CHATBOT WIDGET -->
+<div class="chat-widget" id="chatWidget">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-avatar">🌿</div>
+      <div>
+        <div class="chat-name">Trợ lý Lê Thanh Vi</div>
+        <div class="chat-status"><span class="chat-online-dot"></span> Đang trực tuyến</div>
+      </div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <div class="chat-quick-replies" id="quickReplies"></div>
+
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" class="chat-input" placeholder="Nhắn tin tư vấn..." onkeydown="if(event.key==='Enter')sendMessage()">
+    <button class="chat-send" onclick="sendMessage()">➤</button>
+  </div>
+  <div class="chat-powered">Powered by AI · spalanding.com</div>
+</div>
+
+<style>
+/* ── CHAT WIDGET ── */
+.float-chat {
+  background: linear-gradient(135deg, #0068ff, #0050cc);
+  border: none;
+  cursor: pointer;
+  animation-delay: 0.8s;
+  position: relative;
+}
+.float-chat::after {
+  content: '';
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 12px; height: 12px;
+  background: #00e676;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.chat-widget {
+  position: fixed;
+  bottom: 100px;
+  right: 28px;
+  width: 340px;
+  max-height: 520px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  overflow: hidden;
+  transform: scale(0.9) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.chat-widget.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.chat-header {
+  background: linear-gradient(135deg, #0068ff, #0050cc);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.chat-header-left { display: flex; align-items: center; gap: 10px; }
+.chat-avatar {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.chat-name { font-size: 13px; font-weight: 600; color: #faf7f4; }
+.chat-status { font-size: 11px; color: rgba(250,247,244,0.6); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+.chat-online-dot { width: 7px; height: 7px; background: #00e676; border-radius: 50%; }
+.chat-close { background: none; border: none; color: rgba(250,247,244,0.5); font-size: 16px; cursor: pointer; padding: 2px 6px; transition: color 0.2s; }
+.chat-close:hover { color: #faf7f4; }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  scroll-behavior: smooth;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: #e8ddd4; border-radius: 2px; }
+
+.chat-msg {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  animation: msgIn 0.3s ease both;
+}
+@keyframes msgIn {
+  from { opacity:0; transform: translateY(8px); }
+  to { opacity:1; transform: translateY(0); }
+}
+.chat-msg.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #0068ff, #0050cc);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.msg-bubble {
+  max-width: 78%;
+  padding: 10px 13px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.chat-msg.bot .msg-bubble {
+  background: #f5f1ec;
+  color: #3a3632;
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.user .msg-bubble {
+  background: linear-gradient(135deg, #0068ff, #0050cc);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-typing {
+  display: flex; gap: 4px; padding: 12px 14px;
+  background: #f5f1ec; border-radius: 14px; border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.chat-typing span {
+  width: 7px; height: 7px;
+  background: #0068ff; border-radius: 50%;
+  animation: typing 1.2s infinite;
+}
+.chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:0.4;} 30%{transform:translateY(-5px);opacity:1;} }
+
+.chat-quick-replies {
+  padding: 0 12px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.qr-chip {
+  background: white;
+  border: 1.5px solid #99c0ff;
+  border-radius: 100px;
+  padding: 6px 13px;
+  font-size: 12px;
+  color: #3a3632;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.qr-chip:hover, .qr-chip:active {
+  background: #0068ff;
+  border-color: #0068ff;
+  color: white;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #f0ede8;
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  border: 1.5px solid #e8ddd4;
+  border-radius: 100px;
+  padding: 8px 14px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  color: #3a3632;
+}
+.chat-input:focus { border-color: #0068ff; }
+.chat-send {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #0068ff, #0050cc);
+  border: none; border-radius: 50%;
+  color: white; font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.chat-send:active { transform: scale(0.92); }
+.chat-powered {
+  text-align: center; font-size: 10px;
+  color: #b0a8a0; padding: 4px 0 8px;
+  flex-shrink: 0;
+}
+
+.zalo-cta-bubble {
+  background: linear-gradient(135deg, #0068ff, #0050cc);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: white;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 90%;
+}
+.zalo-cta-bubble a {
+  display: block;
+  margin-top: 10px;
+  background: white;
+  color: #0068ff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+.zalo-cta-bubble a:hover { opacity: 0.9; }
+
+@media (max-width: 400px) {
+  .chat-widget { width: calc(100vw - 32px); right: 16px; bottom: 80px; }
+}
+</style>
 
 <script>
 document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
@@ -817,7 +1063,156 @@ window.addEventListener('scroll', () => {
   const nav = document.querySelector('nav');
   nav.style.boxShadow = window.scrollY > 60 ? '0 4px 32px rgba(42,40,37,0.08)' : 'none';
 });
-// Demo slider
+// ── AI CHATBOT ──────────────────────────────────────────
+const SYSTEM_PROMPT = "Bạn là chuyên viên tư vấn landing page cho spa & clinic của Lê Thanh Vi (spalanding.com).\n\nMỤC TIÊU: Dẫn dắt khách nhận ra vấn đề → thu thập thông tin → chốt sang Zalo.\n\nNGUYÊN TẮC:\n- Trả lời NGẮN (1-3 câu), tự nhiên như người thật\n- Không giải thích kỹ thuật, không lan man\n- Tạo đồng thuận trước rồi mới chốt\n- KHÔNG spam CTA liên tục\n- Luôn dẫn về: vấn đề → giải pháp → demo → Zalo\n\nFLOW BẮT BUỘC:\n1. Hỏi vấn đề chính (pain)\n2. Đồng cảm + hỏi tình trạng website\n3. Hỏi mức độ cấp bách\n4. Tóm tắt + gợi giải pháp\n5. Chốt bằng link Zalo có context\n\nTHÔNG TIN CẦN THU THẬP:\n- pain: Khách hỏi nhiều nhưng không chốt / Ít khách / Ads không hiệu quả\n- status: Chưa có website / Có rồi nhưng chưa hiệu quả\n- intent: Muốn làm sớm / Đang tham khảo\n\nKHI ĐÃ CÓ ĐỦ 3 THÔNG TIN → tạo link Zalo và đặt TOÀN BỘ link đó vào cuối tin nhắn trên một dòng riêng, dạng: https://zalo.me/0921634984?text=... (thay ... bằng nội dung encoded)\n\nXỬ LÝ PHẢN ĐỐI:\n- Để suy nghĩ: đề nghị xem demo trước\n- Giá cao: nhắc chi phí mất khách còn cao hơn, gửi demo\n- Đang ổn: gợi tăng thêm 20-30% conversion, xem demo so sánh\n\nURGENCY khi phù hợp: Bên mình chỉ nhận 3-5 spa/tháng, hiện còn 2 slot.\n\nGIỌNG ĐIỆU: Thân thiện, tự nhiên, như người thật, không quá sales.\n\nQUAN TRỌNG: Chỉ viết text thuần, không markdown, không bullet ký tự đặc biệt.";
+
+const INITIAL_QR = [
+  { label: "👥 Khách hỏi nhiều nhưng không chốt", value: "Khách hỏi nhiều nhưng không chốt" },
+  { label: "📉 Ít khách từ Facebook/TikTok", value: "Ít khách từ Facebook/TikTok" },
+  { label: "💸 Chạy ads không hiệu quả", value: "Chạy ads không hiệu quả" }
+];
+
+var chatHistory = [];
+var chatOpen = false;
+var chatStarted = false;
+var collected = { pain: '', status: '', intent: '' };
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWidget').classList.toggle('open', chatOpen);
+  if (chatOpen && !chatStarted) {
+    chatStarted = true;
+    setTimeout(function() {
+      addBotMsg("Da chao ban! Minh la tro ly tu van cua Le Thanh Vi.\n\nBan dang gap tinh trang nao nhieu nhat voi spa?", INITIAL_QR);
+    }, 400);
+  }
+}
+
+function addBotMsg(text, qrList) {
+  if (!qrList) qrList = [];
+  var msgs = document.getElementById('chatMessages');
+  var typing = document.createElement('div');
+  typing.className = 'chat-msg bot';
+  typing.innerHTML = '<div class="msg-avatar">🌿</div><div class="chat-typing"><span></span><span></span><span></span></div>';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(function() {
+    msgs.removeChild(typing);
+
+    var bubble = document.createElement('div');
+    bubble.className = 'chat-msg bot';
+
+    if (text.indexOf('zalo.me') !== -1) {
+      var urlMatch = text.match(/(https:\/\/zalo\.me\/[^\s]+)/);
+      var link = urlMatch ? urlMatch[1] : 'https://zalo.me/0921634984';
+      var before = urlMatch ? text.replace(urlMatch[1], '').trim() : text;
+      var inner = '<div class="msg-avatar">🌿</div><div class="zalo-cta-bubble">' + before + '<a href="' + link + '" target="_blank">💬 Nhắn Zalo ngay →</a></div>';
+      bubble.innerHTML = inner;
+    } else {
+      var formatted = text.replace(/\n/g, '<br>');
+      bubble.innerHTML = '<div class="msg-avatar">🌿</div><div class="msg-bubble">' + formatted + '</div>';
+    }
+
+    msgs.appendChild(bubble);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    var qrEl = document.getElementById('quickReplies');
+    qrEl.innerHTML = '';
+    if (qrList && qrList.length) {
+      qrList.forEach(function(qr) {
+        var btn = document.createElement('button');
+        btn.className = 'qr-chip';
+        btn.textContent = qr.label;
+        btn.onclick = (function(v, l) { return function() { onQuickReply(v, l); }; })(qr.value, qr.label);
+        qrEl.appendChild(btn);
+      });
+    }
+  }, 800 + Math.floor(Math.random() * 400));
+}
+
+function addUserMsg(text) {
+  var msgs = document.getElementById('chatMessages');
+  var bubble = document.createElement('div');
+  bubble.className = 'chat-msg user';
+  bubble.innerHTML = '<div class="msg-bubble">' + text + '</div>';
+  msgs.appendChild(bubble);
+  msgs.scrollTop = msgs.scrollHeight;
+  document.getElementById('quickReplies').innerHTML = '';
+}
+
+function onQuickReply(value, label) {
+  addUserMsg(label);
+  if (!collected.pain && INITIAL_QR.some(function(q) { return q.value === value; })) {
+    collected.pain = value;
+  } else if (!collected.status && (value.indexOf('Chua') !== -1 || value.indexOf('Có rồi') !== -1 || value.indexOf('Chưa') !== -1)) {
+    collected.status = value;
+  } else if (!collected.intent && (value.indexOf('som') !== -1 || value.indexOf('sớm') !== -1 || value.indexOf('tham khao') !== -1 || value.indexOf('tham khảo') !== -1)) {
+    collected.intent = value;
+  }
+  chatHistory.push({ role: 'user', content: value });
+  callAI();
+}
+
+function sendMessage() {
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMsg(text);
+  chatHistory.push({ role: 'user', content: text });
+  callAI();
+}
+
+function callAI() {
+  var contextNote = '';
+  if (collected.pain || collected.status || collected.intent) {
+    contextNote = '\n\n[DA THU THAP: pain="' + collected.pain + '", status="' + collected.status + '", intent="' + collected.intent + '"]';
+    if (collected.pain && collected.status && collected.intent) {
+      var p = encodeURIComponent('Spa minh dang gap: ' + collected.pain + ', tinh trang: ' + collected.status + ', nhu cau: ' + collected.intent);
+      contextNote += '\n[DA DU 3 THONG TIN - Tao link Zalo: https://zalo.me/0921634984?text=' + p + ' va chot ngay trong tin nhan nay]';
+    }
+  }
+
+  var nextQR = [];
+  var msgCount = chatHistory.length;
+  if (msgCount === 1) {
+    nextQR = [
+      { label: "✅ Chưa có website/landing page", value: "Chưa có website/landing page" },
+      { label: "⚠️ Có rồi nhưng chưa hiệu quả", value: "Có rồi nhưng chưa hiệu quả" }
+    ];
+  } else if (msgCount === 3) {
+    nextQR = [
+      { label: "🔥 Muốn làm sớm", value: "Muốn làm sớm" },
+      { label: "🔍 Đang tham khảo thêm", value: "Đang tham khảo thêm" }
+    ];
+  }
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: SYSTEM_PROMPT + contextNote,
+      messages: chatHistory
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    var reply = (data.content && data.content[0] && data.content[0].text)
+      ? data.content[0].text
+      : 'Da minh chua hieu ro, ban co the noi them khong a?';
+    chatHistory.push({ role: 'assistant', content: reply });
+    addBotMsg(reply, nextQR);
+  })
+  .catch(function() {
+    addBotMsg('Da minh dang ban, ban nhan thang Zalo cho minh nhe!', [
+      { label: "💬 Nhắn Zalo ngay", value: "zalo" }
+    ]);
+  });
+}
+// ── END CHATBOT ──────────────────────────────────────────
 let currentSlide = 0;
 const slides = document.querySelectorAll('.demo-slide');
 const dots = document.querySelectorAll('.slide-dot');
