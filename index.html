@@ -1040,6 +1040,52 @@ window.addEventListener('scroll', function() {
   cursor:pointer;text-decoration:underline;padding:0;
   font-family:var(--font);
 }
+
+/* ── TIMED TOAST ── */
+#eiToast{
+  position:fixed;
+  bottom:84px; /* above sticky bottom bar */
+  left:50%;transform:translateX(-50%) translateY(20px);
+  z-index:998;
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06);
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  width:calc(100% - 32px);max-width:400px;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
+}
+#eiToast.show{
+  opacity:1;pointer-events:auto;
+  transform:translateX(-50%) translateY(0);
+}
+.toast-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,#fff3ee,#ffe4d6);
+  border:1px solid rgba(184,134,106,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.toast-body{flex:1;min-width:0;}
+.toast-body strong{
+  display:block;font-size:13px;color:#1a1c20;
+  line-height:1.35;margin-bottom:2px;
+}
+.toast-body span{font-size:11.5px;color:#6b7280;line-height:1.4;}
+.toast-cta{
+  background:var(--blue);color:#fff;border:none;
+  border-radius:8px;padding:8px 13px;
+  font-size:11.5px;font-weight:700;letter-spacing:0.5px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  font-family:var(--font);transition:background 0.15s;
+}
+.toast-cta:active{background:var(--blue-dark);}
+.toast-close{
+  background:none;border:none;color:#c0c4cc;
+  font-size:16px;cursor:pointer;padding:0 0 0 4px;flex-shrink:0;
+  line-height:1;
+}
 </style>
 
 <script>
@@ -1189,6 +1235,17 @@ function callAI() {
 // No auto-open — user clicks when ready
 </script>
 
+<!-- ══ TIMED TOAST ════════════════════════════════════════════════ -->
+<div id="eiToast">
+  <div class="toast-icon">🔍</div>
+  <div class="toast-body">
+    <strong>Trang spa bạn đang mất khách ở đâu?</strong>
+    <span>Dán link — mình phân tích miễn phí ngay</span>
+  </div>
+  <button class="toast-cta" onclick="openToastPopup()">Xem ngay</button>
+  <button class="toast-close" onclick="dismissToast()">✕</button>
+</div>
+
 <!-- ══ EXIT INTENT POPUP ══════════════════════════════════════════ -->
 <div id="exitOverlay">
   <div id="exitPopup">
@@ -1225,6 +1282,31 @@ function callAI() {
 </div>
 
 <script>
+// ── TIMED TOAST (20s) ────────────────────────────────────────────
+var toastDismissed = false;
+var toastTimer = null;
+
+function showToast() {
+  if (toastDismissed || eiShown) return;
+  document.getElementById('eiToast').classList.add('show');
+}
+
+function dismissToast() {
+  toastDismissed = true;
+  document.getElementById('eiToast').classList.remove('show');
+}
+
+function openToastPopup() {
+  dismissToast();
+  showExitPopup();
+}
+
+// Show toast after 20 seconds
+toastTimer = setTimeout(showToast, 20000);
+
+// Hide toast automatically if user opens exit popup via other means
+// (handled inside showExitPopup)
+
 // ── EXIT INTENT LOGIC ────────────────────────────────────────────
 var eiShown = false;
 var eiHist = [];
@@ -1233,6 +1315,7 @@ var eiSYS = "Bạn là chuyên gia phân tích landing page & marketing spa củ
 function showExitPopup() {
   if (eiShown) return;
   eiShown = true;
+  dismissToast(); // hide toast if showing
 
   var overlay = document.getElementById('exitOverlay');
   overlay.classList.add('show');
