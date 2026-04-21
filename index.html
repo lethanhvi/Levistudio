@@ -418,6 +418,31 @@ body{padding-bottom:72px;}
 
 <!-- ── SECTION 1: HERO ── -->
 <section class="hero">
+
+  <!-- Cat viral banner — matches TikTok video tone -->
+  <div style="
+    background:linear-gradient(135deg,#fff8e7,#fff3d0);
+    border:1.5px solid #ffd060;
+    border-radius:12px;
+    padding:12px 16px;
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+    animation:fadeDown 0.5s ease both;
+  ">
+    <span style="font-size:28px;flex-shrink:0;">🐱</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#b8860b;line-height:1.4;">
+        Con mèo uống 3 bình cà phê vẫn ngủ gục 😂
+      </div>
+      <div style="font-size:12px;color:#8a6d00;margin-top:2px;line-height:1.4;">
+        AI thay thế — chốt khách 24/7 không cần trực
+      </div>
+    </div>
+  </div>
+
   <div class="hero-badge"><span></span>Demo trong 24 giờ · Miễn phí</div>
 
   <h1>
@@ -1232,7 +1257,10 @@ function callAI() {
   });
 }
 
-// No auto-open — user clicks when ready
+// Auto-open chat after 3 seconds
+setTimeout(function() {
+  if (!isOpen) toggleChat();
+}, 3000);
 </script>
 
 <!-- ══ TIMED TOAST ════════════════════════════════════════════════ -->
@@ -1302,7 +1330,7 @@ function openToastPopup() {
 }
 
 // Show toast after 20 seconds
-toastTimer = setTimeout(showToast, 20000);
+toastTimer = setTimeout(showToast, 8000);
 
 // Hide toast automatically if user opens exit popup via other means
 // (handled inside showExitPopup)
