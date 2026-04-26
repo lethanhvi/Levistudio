@@ -679,36 +679,21 @@ async function startAnalysis() {
 
 // ── FETCH SITE CONTENT ────────────────────────────────────────────
 async function fetchSiteContent(url) {
-  // Try multiple CORS proxies with fallback
-  const proxies = [
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    `https://thingproxy.freeboard.io/fetch/${url}`
-  ];
+  // Gọi Vercel backend /api/fetch-site để tránh CORS
+  const res = await fetch('/api/fetch-site', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+    signal: AbortSignal.timeout(15000)
+  });
 
-  let html = '';
-  let lastErr = '';
+  if (!res.ok) throw new Error('Backend không fetch được website');
 
-  for (const proxyUrl of proxies) {
-    try {
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
-      if (!res.ok) continue;
-      if (proxyUrl.includes('allorigins')) {
-        const data = await res.json();
-        html = data.contents || '';
-      } else {
-        html = await res.text();
-      }
-      if (html.length > 500) break;
-    } catch(e) {
-      lastErr = e.message;
-      continue;
-    }
-  }
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
 
-  if (!html || html.length < 100) {
-    throw new Error('Không fetch được website — ' + lastErr);
-  }
+  const html = data.html || '';
+  if (!html || html.length < 100) throw new Error('Website trả về nội dung trống');
 
   // Extract useful text content from HTML
   const parser = new DOMParser();
