@@ -545,6 +545,81 @@ body::before {
   .score-header { flex-direction: column; text-align: center; }
   .footer { flex-direction: column; gap: 8px; }
 }
+
+/* PDF BUTTON */
+.pdf-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.pdf-btn:hover { background: rgba(232,255,71,0.08); }
+.pdf-btn:active { transform: scale(0.98); }
+
+/* PRINT / PDF STYLES */
+@media print {
+  body { background: #fff !important; color: #111 !important; }
+  body::before, body::after { display: none !important; }
+  .header, .input-zone, #status-zone, #errorBox,
+  .cta-block, .reset-row, .footer, .pdf-btn { display: none !important; }
+  #result-zone { display: block !important; }
+  .score-header {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .score-num { color: #111 !important; }
+  .score-verdict { color: #111 !important; }
+  .score-summary { color: #555 !important; }
+  .issue-card {
+    background: #f9f9f9 !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .issue-title { color: #111 !important; }
+  .issue-desc { color: #444 !important; }
+  .badge-high { background: #ffe0e0 !important; color: #c00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .badge-med  { background: #fff3cd !important; color: #b85c00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .badge-low  { background: #e0f0ff !important; color: #005fa3 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .strength-item {
+    background: #f0fff8 !important;
+    border: 1px solid #b2f0d0 !important;
+    color: #1a6640 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .section-title { color: #888 !important; }
+  .section-title::after { background: #ddd !important; }
+  .wrap { padding: 20px !important; max-width: 100% !important; }
+
+  /* PDF Header */
+  #pdf-header { display: block !important; }
+}
+
+#pdf-header {
+  display: none;
+  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 20px;
+}
+#pdf-header h2 { font-size: 18px; color: #111; font-family: sans-serif; }
+#pdf-header p { font-size: 12px; color: #888; margin-top: 4px; }
+
 </style>
 </head>
 <body>
@@ -588,6 +663,7 @@ body::before {
 
   <!-- RESULT -->
   <div id="result-zone">
+    <div id="pdf-header"><h2>Báo cáo phân tích website Spa</h2><p id="pdf-meta"></p></div>
 
     <div class="score-header" id="scoreHeader">
       <div class="score-circle" id="scoreCircle">
@@ -616,6 +692,7 @@ body::before {
     </div>
 
     <div class="reset-row">
+      <button class="pdf-btn" onclick="exportPDF()">⬇ Xuất báo cáo PDF</button>
       <button class="reset-btn" onclick="resetTool()">↺ Phân tích website khác</button>
     </div>
   </div>
@@ -908,6 +985,14 @@ function resetTool() {
   document.getElementById('urlInput').value = '';
   document.getElementById('urlInput').focus();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function exportPDF() {
+  // Cập nhật PDF meta
+  const site = document.getElementById('scoreSite').textContent;
+  const date = new Date().toLocaleDateString('vi-VN');
+  document.getElementById('pdf-meta').textContent = site + ' · Phân tích bởi spalanding.com · ' + date;
+  window.print();
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
