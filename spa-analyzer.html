@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spa Website Analyzer — spalanding.com</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0d0f;
+  --surface: #141518;
+  --surface2: #1c1e23;
+  --border: #2a2d35;
+  --text: #f0f0f2;
+  --muted: #6b7080;
+  --accent: #e8ff47;
+  --accent2: #ff6b35;
+  --green: #3dffa0;
+  --red: #ff4d6d;
+  --amber: #ffb830;
+  --blue: #4d9fff;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* NOISE OVERLAY */
+body::after {
+  content:'';
+  position:fixed;inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:999;
+  opacity:0.4;
+}
+
+/* BG GLOW */
+body::before {
+  content:'';
+  position:fixed;
+  top:-30%;left:-20%;
+  width:70%;height:70%;
+  background: radial-gradient(ellipse, rgba(232,255,71,0.04) 0%, transparent 60%);
+  pointer-events:none;
+}
+
+.wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* HEADER */
+.header {
+  margin-bottom: 48px;
+}
+
+.header-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 6vw, 52px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+
+.header h1 em {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.header-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 460px;
+}
+
+/* INPUT ZONE */
+.input-zone {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.input-zone::before {
+  content: '→';
+  position: absolute;
+  top: 24px; right: 24px;
+  font-size: 18px;
+  color: var(--muted);
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.input-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.url-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.url-input::placeholder { color: var(--muted); }
+.url-input:focus { border-color: var(--accent); }
+
+.analyze-btn {
+  background: var(--accent);
+  color: #0c0d0f;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 24px;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.analyze-btn:hover { background: #d4eb3a; transform: translateY(-1px); }
+.analyze-btn:active { transform: scale(0.97); }
+.analyze-btn:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.input-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* STATUS */
+#status-zone {
+  display: none;
+  margin-bottom: 24px;
+}
+
+.status-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,100%{opacity:1;} 50%{opacity:0.2;}
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.status-step {
+  font-size: 10px;
+  color: var(--muted);
+  margin-left: auto;
+  letter-spacing: 1px;
+}
+
+/* PROGRESS STEPS */
+.steps-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.step-pill {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  transition: background 0.4s;
+}
+
+.step-pill.done { background: var(--accent); }
+.step-pill.active {
+  background: linear-gradient(90deg, var(--accent), transparent);
+  animation: shimmer 1s infinite;
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* RESULT */
+#result-zone {
+  display: none;
+  animation: fadeUp 0.5s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* SCORE HEADER */
+.score-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  position: relative;
+}
+
+.score-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.score-info { flex: 1; }
+
+.score-site {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.score-verdict {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.score-summary {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ISSUES */
+.section-title {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.issue-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: border-color 0.2s;
+  animation: fadeUp 0.4s ease both;
+}
+
+.issue-card:hover { border-color: rgba(255,75,109,0.3); }
+
+.issue-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.issue-body { flex: 1; }
+
+.issue-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--text);
+}
+
+.issue-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.issue-badge {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.badge-high { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.25); }
+.badge-med  { background: rgba(255,184,48,0.12); color: var(--amber); border: 1px solid rgba(255,184,48,0.2); }
+.badge-low  { background: rgba(77,159,255,0.12); color: var(--blue); border: 1px solid rgba(77,159,255,0.2); }
+
+/* STRENGTHS */
+.strength-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.strength-item {
+  background: var(--surface);
+  border: 1px solid rgba(61,255,160,0.15);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #a0f0c8;
+  animation: fadeUp 0.4s ease both;
+}
+
+.strength-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--green);
+}
+
+/* CTA BLOCK */
+.cta-block {
+  background: linear-gradient(135deg, rgba(232,255,71,0.08), rgba(255,107,53,0.06));
+  border: 1px solid rgba(232,255,71,0.2);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.cta-block h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.cta-block p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.cta-zalo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #0c0d0f;
+  text-decoration: none;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.cta-zalo:hover { background: #d4eb3a; transform: translateY(-2px); }
+
+/* RESET */
+.reset-row {
+  text-align: center;
+}
+
+.reset-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* ERROR */
+.error-box {
+  background: rgba(255,77,109,0.08);
+  border: 1px solid rgba(255,77,109,0.25);
+  border-radius: 10px;
+  padding: 20px;
+  font-size: 13px;
+  color: #ff9aaa;
+  line-height: 1.6;
+  display: none;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-brand {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.footer-brand span {
+  color: var(--accent);
+}
+
+.footer-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .wrap { padding: 32px 16px 60px; }
+  .input-row { flex-direction: column; }
+  .score-header { flex-direction: column; text-align: center; }
+  .footer { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-eyebrow">spalanding.com · tool</div>
+    <h1>Phân tích<br>website spa<br><em>bằng AI</em></h1>
+    <p class="header-desc">Dán link website hoặc Fanpage spa — AI sẽ fetch nội dung thật, phân tích điểm yếu đang làm mất booking và đề xuất cải thiện cụ thể.</p>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-zone">
+    <div class="input-label">Nhập URL cần phân tích</div>
+    <div class="input-row">
+      <input class="url-input" id="urlInput" type="url"
+        placeholder="https://tenspa.com hoặc facebook.com/tenspa"
+        onkeydown="if(event.key==='Enter')startAnalysis()">
+      <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">Phân tích</button>
+    </div>
+    <div class="input-hint">🔒 Chỉ đọc nội dung công khai — không lưu dữ liệu</div>
+  </div>
+
+  <!-- STATUS -->
+  <div id="status-zone">
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <div class="status-text" id="statusText">Đang khởi tạo...</div>
+      <div class="status-step" id="statusStep">0/3</div>
+    </div>
+    <div class="steps-row">
+      <div class="step-pill" id="step1"></div>
+      <div class="step-pill" id="step2"></div>
+      <div class="step-pill" id="step3"></div>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- RESULT -->
+  <div id="result-zone">
+
+    <div class="score-header" id="scoreHeader">
+      <div class="score-circle" id="scoreCircle">
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-label">/ 100</div>
+      </div>
+      <div class="score-info">
+        <div class="score-site" id="scoreSite"></div>
+        <div class="score-verdict" id="scoreVerdict"></div>
+        <div class="score-summary" id="scoreSummary"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Vấn đề phát hiện</div>
+    <div class="issue-list" id="issueList"></div>
+
+    <div class="section-title">Điểm mạnh</div>
+    <div class="strength-list" id="strengthList"></div>
+
+    <div class="cta-block">
+      <h3>Bạn muốn sửa những lỗi này?</h3>
+      <p id="ctaDesc">Lê Thanh Vi có thể làm demo landing page mới trong 24h — miễn phí xem thử trước khi quyết định.</p>
+      <a class="cta-zalo" id="ctaLink" href="https://zalo.me/0921634984" target="_blank">
+        💬 Nhắn Zalo — tư vấn miễn phí
+      </a>
+    </div>
+
+    <div class="reset-row">
+      <button class="reset-btn" onclick="resetTool()">↺ Phân tích website khác</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">spa<span>landing</span>.com</div>
+    <div class="footer-note">by Lê Thanh Vi · 0921 634 984</div>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const PROXY_URL = '/api/chat';
+
+// ── STATE ─────────────────────────────────────────────────────────
+let currentURL = '';
+
+// ── MAIN FLOW ─────────────────────────────────────────────────────
+async function startAnalysis() {
+  const input = document.getElementById('urlInput').value.trim();
+  if (!input) {
+    showError('Vui lòng nhập URL website hoặc Fanpage cần phân tích.');
+    return;
+  }
+
+  let url = input;
+  if (!url.startsWith('http')) url = 'https://' + url;
+
+  currentURL = url;
+  hideError();
+  showStatus();
+  disableBtn();
+  hideResult();
+
+  try {
+    // STEP 1: Fetch website content
+    setStep(1, 'Đang truy cập website...');
+    const siteContent = await fetchSiteContent(url);
+
+    // STEP 2: Analyze with Claude
+    setStep(2, 'AI đang phân tích...');
+    const analysis = await analyzeWithClaude(url, siteContent);
+
+    // STEP 3: Render result
+    setStep(3, 'Hoàn tất phân tích!');
+    await sleep(500);
+
+    renderResult(url, analysis);
+    hideStatus();
+    showResult();
+
+  } catch (err) {
+    hideStatus();
+    enableBtn();
+    showError('Không thể phân tích website này. ' + (err.message || 'Vui lòng thử lại hoặc kiểm tra URL.'));
+  }
+}
+
+// ── FETCH SITE CONTENT ────────────────────────────────────────────
+async function fetchSiteContent(url) {
+  // Use allorigins.win as CORS proxy to fetch website HTML
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+  const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) throw new Error('Không fetch được website');
+
+  const data = await res.json();
+  const html = data.contents || '';
+
+  // Extract useful text content from HTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // Remove scripts/styles/nav
+  ['script','style','noscript','nav','footer'].forEach(tag => {
+    doc.querySelectorAll(tag).forEach(el => el.remove());
+  });
+
+  // Extract key signals
+  const title = doc.title || '';
+  const metaDesc = doc.querySelector('meta[name="description"]')?.content || '';
+  const h1s = [...doc.querySelectorAll('h1')].map(h => h.textContent.trim()).filter(Boolean).slice(0, 5);
+  const h2s = [...doc.querySelectorAll('h2')].map(h => h.textContent.trim()).filter(Boolean).slice(0, 8);
+  const ctaTexts = [...doc.querySelectorAll('a, button')].map(el => el.textContent.trim()).filter(t => t.length > 2 && t.length < 60).slice(0, 20);
+  const bodyText = doc.body?.textContent?.replace(/\s+/g,' ').trim().slice(0, 3000) || '';
+  const hasPhone = /0[3-9]\d{8}/.test(html);
+  const hasZalo = /zalo/i.test(html);
+  const hasFacebook = /facebook\.com/i.test(html);
+  const hasForm = doc.querySelectorAll('form, input[type=text], input[type=tel]').length > 0;
+  const hasImages = doc.querySelectorAll('img').length;
+  const isMobileReady = html.includes('viewport');
+
+  return {
+    url,
+    title,
+    metaDesc,
+    h1s,
+    h2s,
+    ctaTexts,
+    bodyText,
+    signals: { hasPhone, hasZalo, hasFacebook, hasForm, hasImages, isMobileReady },
+    rawLength: html.length
+  };
+}
+
+// ── ANALYZE WITH CLAUDE ───────────────────────────────────────────
+async function analyzeWithClaude(url, content) {
+  const systemPrompt = `Bạn là chuyên gia audit website & landing page cho spa, clinic, beauty center tại Việt Nam. Bạn làm việc cho spalanding.com của Lê Thanh Vi.
+
+Nhiệm vụ: Phân tích dữ liệu website spa được cung cấp và trả về JSON phân tích CHÍNH XÁC dựa trên dữ liệu thật.
+
+Trả về JSON theo format sau (CHỈ JSON, không markdown, không giải thích thêm):
+{
+  "score": <số nguyên 0-100>,
+  "verdict": "<1 câu đánh giá tổng thể ngắn gọn>",
+  "summary": "<2-3 câu tóm tắt tình trạng website>",
+  "issues": [
+    {
+      "icon": "<emoji>",
+      "title": "<tên vấn đề ngắn>",
+      "desc": "<giải thích cụ thể dựa trên data thật từ website>",
+      "severity": "high|med|low"
+    }
+  ],
+  "strengths": ["<điểm mạnh 1>", "<điểm mạnh 2>"],
+  "cta_message": "<câu mời tư vấn cá nhân hóa dựa trên vấn đề cụ thể của website này>"
+}
+
+Quy tắc phân tích:
+- Score: 80+ = tốt, 60-79 = trung bình, dưới 60 = cần cải thiện nhiều
+- Tìm 3-5 vấn đề cụ thể DỰA TRÊN DATA THẬT (title, h1, h2, CTA, form, phone...)
+- Đề cập ĐẶC ĐIỂM THẬT của website (tên spa nếu biết, lỗi cụ thể)
+- Tối thiểu 1 điểm mạnh thật sự
+- severity: high = ảnh hưởng booking trực tiếp, med = ảnh hưởng gián tiếp, low = cải thiện nhỏ
+- Ngôn ngữ: tiếng Việt tự nhiên`;
+
+  const userMsg = `Hãy phân tích website spa sau:
+
+URL: ${content.url}
+Title: ${content.title}
+Meta description: ${content.metaDesc}
+H1 headings: ${JSON.stringify(content.h1s)}
+H2 headings: ${JSON.stringify(content.h2s)}
+CTA buttons/links: ${JSON.stringify(content.ctaTexts.slice(0,15))}
+Có số điện thoại: ${content.signals.hasPhone}
+Có Zalo: ${content.signals.hasZalo}
+Có form đặt lịch: ${content.signals.hasForm}
+Số ảnh: ${content.signals.hasImages}
+Mobile responsive: ${content.signals.isMobileReady}
+Nội dung chính (excerpt): ${content.bodyText.slice(0, 1500)}
+
+Phân tích dựa trên dữ liệu thật này và trả về JSON.`;
+
+  const response = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 1500,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+
+  if (!response.ok) throw new Error('API error: ' + response.status);
+
+  const data = await response.json();
+  const text = data.content?.[0]?.text || '';
+
+  // Parse JSON
+  const clean = text.replace(/```json|```/g, '').trim();
+  const parsed = JSON.parse(clean);
+  return parsed;
+}
+
+// ── RENDER RESULT ─────────────────────────────────────────────────
+function renderResult(url, data) {
+  // Score
+  const score = data.score || 0;
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('scoreSite').textContent = url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40);
+  document.getElementById('scoreVerdict').textContent = data.verdict || '';
+  document.getElementById('scoreSummary').textContent = data.summary || '';
+
+  // Score color
+  const circle = document.getElementById('scoreCircle');
+  const numEl = document.getElementById('scoreNum');
+  if (score >= 70) {
+    circle.style.borderColor = 'rgba(61,255,160,0.5)';
+    numEl.style.color = '#3dffa0';
+  } else if (score >= 50) {
+    circle.style.borderColor = 'rgba(255,184,48,0.5)';
+    numEl.style.color = '#ffb830';
+  } else {
+    circle.style.borderColor = 'rgba(255,77,109,0.5)';
+    numEl.style.color = '#ff4d6d';
+  }
+
+  // Issues
+  const issueList = document.getElementById('issueList');
+  issueList.innerHTML = '';
+  (data.issues || []).forEach((issue, i) => {
+    const card = document.createElement('div');
+    card.className = 'issue-card';
+    card.style.animationDelay = (i * 0.08) + 's';
+    const badgeClass = issue.severity === 'high' ? 'badge-high' : issue.severity === 'med' ? 'badge-med' : 'badge-low';
+    const badgeLabel = issue.severity === 'high' ? 'Nghiêm trọng' : issue.severity === 'med' ? 'Trung bình' : 'Nhỏ';
+    card.innerHTML = `
+      <div class="issue-icon">${issue.icon || '⚠️'}</div>
+      <div class="issue-body">
+        <div class="issue-title">${escHtml(issue.title)}</div>
+        <div class="issue-desc">${escHtml(issue.desc)}</div>
+      </div>
+      <div class="issue-badge ${badgeClass}">${badgeLabel}</div>
+    `;
+    issueList.appendChild(card);
+  });
+
+  // Strengths
+  const strengthList = document.getElementById('strengthList');
+  strengthList.innerHTML = '';
+  (data.strengths || ['Website đang hoạt động']).forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'strength-item';
+    el.style.animationDelay = (i * 0.06) + 's';
+    el.innerHTML = `<div class="strength-dot"></div>${escHtml(s)}`;
+    strengthList.appendChild(el);
+  });
+
+  // CTA
+  if (data.cta_message) {
+    document.getElementById('ctaDesc').textContent = data.cta_message;
+  }
+
+  // Zalo link with context
+  const domain = url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+  const zaloText = encodeURIComponent(`Tôi muốn cải thiện website ${domain} — đã xem phân tích AI`);
+  document.getElementById('ctaLink').href = `https://zalo.me/0921634984?text=${zaloText}`;
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────
+function setStep(step, text) {
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('statusStep').textContent = step + '/3';
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step' + i);
+    if (i < step) el.className = 'step-pill done';
+    else if (i === step) el.className = 'step-pill active';
+    else el.className = 'step-pill';
+  }
+}
+
+function showStatus() { document.getElementById('status-zone').style.display = 'block'; }
+function hideStatus() { document.getElementById('status-zone').style.display = 'none'; }
+function showResult() { document.getElementById('result-zone').style.display = 'block'; }
+function hideResult() { document.getElementById('result-zone').style.display = 'none'; }
+function disableBtn() {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Đang phân tích...';
+}
+function enableBtn() {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = false;
+  btn.textContent = 'Phân tích';
+}
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+function hideError() { document.getElementById('errorBox').style.display = 'none'; }
+
+function resetTool() {
+  hideResult();
+  hideError();
+  enableBtn();
+  document.getElementById('urlInput').value = '';
+  document.getElementById('urlInput').focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+
+</body>
+</html>
